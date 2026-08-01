@@ -387,6 +387,8 @@ func pickAuth(raw []byte) ([]byte, error) {
 		return okEnvelope(pluginapi.SchedulerPickResponse{Handled: false})
 	}
 
+	now := time.Now().Unix()
+
 	stateMu.Lock()
 	eligible := make([]pluginapi.SchedulerAuthCandidate, 0, len(req.Candidates))
 	for _, candidate := range req.Candidates {
@@ -401,11 +403,18 @@ func pickAuth(raw []byte) ([]byte, error) {
 			continue
 		}
 		blocked := false
+		// A blocked account stops receiving requests, so it never gets a fresh
+		// header to lower its tracked utilization. Once Anthropic's own reset
+		// time has passed, treat that window as reset even without new data.
 		if acct.Reserve5hPercent > 0 && entry.Util5h >= 1-acct.Reserve5hPercent/100 {
-			blocked = true
+			if entry.Reset5h == 0 || now < entry.Reset5h {
+				blocked = true
+			}
 		}
 		if acct.Reserve7dPercent > 0 && entry.Util7d >= 1-acct.Reserve7dPercent/100 {
-			blocked = true
+			if entry.Reset7d == 0 || now < entry.Reset7d {
+				blocked = true
+			}
 		}
 		if !blocked {
 			eligible = append(eligible, candidate)
