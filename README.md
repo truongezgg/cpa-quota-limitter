@@ -37,6 +37,21 @@ not a hard rate limiter — it only reacts after utilization has been observed
 at least once (a newly added, never-used account is always eligible until its
 first response is recorded).
 
+## Known limitation: unbounded block if `reset` is never captured
+
+Once an account is blocked it receives zero further traffic, so its tracked
+state can only self-heal by comparing `now` against the `reset` timestamp
+parsed from Anthropic's `-reset` header (see `pickAuth` in `go/main.go`). If
+that header is ever missing or fails to parse for a window at the moment the
+account trips over threshold, `Reset5h`/`Reset7d` stays `0`, and the account
+is blocked **permanently** — including across restarts, since state is
+persisted to `state_file`. There is currently no time-based fallback.
+
+Mitigation today: if an account seems stuck, check `state_file` for the
+account's entry and its `reset_5h`/`reset_7d` fields; a `0` value with a
+high `util_5h`/`util_7d` confirms this case. Manual recovery is to edit or
+remove that entry from `state_file` (or delete the file) and restart.
+
 ## Configuration
 
 Add the plugin under `plugins.configs`:
