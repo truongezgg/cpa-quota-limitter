@@ -1,25 +1,25 @@
 # CLAUDE.md
 
-Out-of-process CLIProxyAPI plugin (`quota-reserve`) that reserves a percentage of
-Anthropic's real 5h/7d subscription quota for specific auth IDs.
+Out-of-process CLIProxyAPI plugin (`anthropic-quota-reserve`) that reserves a
+percentage of Anthropic's real 5h/7d subscription quota for specific auth IDs.
 
 ## Build
 
 ```bash
 cd go
-go build -buildmode=c-shared -o ../quota-reserve.so .
+go build -buildmode=c-shared -o ../anthropic-quota-reserve.so .
 ```
 
 Verify compile only (no output kept):
 
 ```bash
-cd go && go build -buildmode=c-shared -o /tmp/quota-reserve.so . && rm /tmp/quota-reserve.so
+cd go && go build -buildmode=c-shared -o /tmp/anthropic-quota-reserve.so . && rm /tmp/anthropic-quota-reserve.so
 ```
 
-Deploy: copy `quota-reserve.so` into the target CLIProxyAPI's `plugins/` dir
-(must be a host-mounted volume there, or it's wiped on container recreation),
-set `plugins.enabled: true`, add the `quota-reserve` config block from
-README.md under `plugins.configs`.
+Deploy: copy `anthropic-quota-reserve.so` into the target CLIProxyAPI's
+`plugins/` dir (must be a host-mounted volume there, or it's wiped on
+container recreation), set `plugins.enabled: true`, add the
+`anthropic-quota-reserve` config block from README.md under `plugins.configs`.
 
 ## Architecture
 

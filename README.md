@@ -1,4 +1,4 @@
-# Quota Reserve Plugin
+# Anthropic Quota Reserve Plugin
 
 Reserves a percentage of Anthropic's real 5h/7d subscription quota for specific
 auth IDs (e.g. an account borrowed from someone else) so the proxy stops
@@ -61,10 +61,10 @@ plugins:
   enabled: true
   dir: "plugins"
   configs:
-    quota-reserve:
+    anthropic-quota-reserve:
       enabled: true
       priority: 1
-      state_file: "./plugins/quota-reserve-state.json"
+      state_file: "./plugins/anthropic-quota-reserve-state.json"
       flush_interval_seconds: 300
       accounts:
         - auth_id: "<Auth.ID of the borrowed account>"
@@ -88,9 +88,9 @@ From this directory:
 
 ```bash
 cd go
-go build -buildmode=c-shared -o ../quota-reserve.so .
+go build -buildmode=c-shared -o ../anthropic-quota-reserve.so .
 ```
 
-Copy `quota-reserve.so` into your CLIProxyAPI `plugins/` dir, set
-`plugins.enabled: true`, and add the `quota-reserve` config block above to
-your `config.yaml`.
+Copy `anthropic-quota-reserve.so` into your CLIProxyAPI `plugins/` dir, set
+`plugins.enabled: true`, and add the `anthropic-quota-reserve` config block
+above to your `config.yaml`.

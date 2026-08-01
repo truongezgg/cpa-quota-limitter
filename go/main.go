@@ -242,7 +242,7 @@ func pluginRegistration() registration {
 	return registration{
 		SchemaVersion: pluginabi.SchemaVersion,
 		Metadata: pluginapi.Metadata{
-			Name:             "quota-reserve",
+			Name:             "anthropic-quota-reserve",
 			Version:          "0.1.0",
 			Author:           "router-for-me",
 			GitHubRepository: "https://github.com/router-for-me/CLIProxyAPI",

@@ -1,4 +1,4 @@
-module github.com/truongezgg/cpa-quota-limitter/go
+module github.com/truongezgg/cpa-anthropic-quota-reserve/go
 
 go 1.26.0
 
