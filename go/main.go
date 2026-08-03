@@ -76,8 +76,9 @@ type envelope struct {
 }
 
 type envelopeError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Code       string `json:"code"`
+	Message    string `json:"message"`
+	HTTPStatus int    `json:"http_status,omitempty"`
 }
 
 type lifecycleRequest struct {
@@ -91,9 +92,10 @@ type accountConfig struct {
 }
 
 type pluginConfig struct {
-	StateFile            string          `yaml:"state_file"`
-	FlushIntervalSeconds int             `yaml:"flush_interval_seconds"`
-	Accounts             []accountConfig `yaml:"accounts"`
+	StateFile                string          `yaml:"state_file"`
+	FlushIntervalSeconds     int             `yaml:"flush_interval_seconds"`
+	HardBlockWhenAllReserved bool            `yaml:"hard_block_when_all_reserved"`
+	Accounts                 []accountConfig `yaml:"accounts"`
 }
 
 // accountState is the latest parsed Anthropic quota utilization for one auth ID.
@@ -257,6 +259,11 @@ func pluginRegistration() registration {
 					Name:        "flush_interval_seconds",
 					Type:        pluginapi.ConfigFieldTypeInteger,
 					Description: "How often (in seconds) tracked utilization is flushed to state_file.",
+				},
+				{
+					Name:        "hard_block_when_all_reserved",
+					Type:        pluginapi.ConfigFieldTypeBoolean,
+					Description: "When true, fail selection instead of allowing the built-in scheduler to use an account below its reserve when all candidates are reserved.",
 				},
 				{
 					Name:        "accounts",
@@ -423,6 +430,9 @@ func pickAuth(raw []byte) ([]byte, error) {
 	stateMu.Unlock()
 
 	if len(eligible) == 0 {
+		if cfg.HardBlockWhenAllReserved {
+			return errorEnvelopeWithStatus("anthropic_quota_reserve_exhausted", "all Anthropic accounts have reached their reserved quota", 429), nil
+		}
 		// All configured accounts are over budget and no fallback candidate
 		// exists — hand back to the host's normal scheduler rather than
 		// failing the request outright.
@@ -529,6 +539,11 @@ func okEnvelope(v any) ([]byte, error) {
 
 func errorEnvelope(code, message string) []byte {
 	raw, _ := json.Marshal(envelope{OK: false, Error: &envelopeError{Code: code, Message: message}})
+	return raw
+}
+
+func errorEnvelopeWithStatus(code, message string, status int) []byte {
+	raw, _ := json.Marshal(envelope{OK: false, Error: &envelopeError{Code: code, Message: message, HTTPStatus: status}})
 	return raw
 }
 

@@ -32,9 +32,10 @@ method dispatch) around two capabilities:
 - `scheduler.pick` (`pickAuth`) — for auth IDs listed in config only, excludes
   a candidate once tracked utilization crosses `1 - reserve_percent/100`,
   unless its Anthropic-reported `reset` timestamp has passed. Mimics host
-  priority grouping + round-robin among survivors. Returns `Handled:false`
-  if every candidate ends up excluded, so the host's normal scheduler still
-  picks something.
+  priority grouping + round-robin among survivors. If every candidate ends up
+  excluded, soft mode returns `Handled:false`; with
+  `hard_block_when_all_reserved: true`, it returns HTTP 429 so the host cannot
+  fall back to a protected account.
 
 State is flushed to `state_file` on a ticker (`flush_interval_seconds`) and on
 `plugin.shutdown`, and reloaded on `plugin.register`/`plugin.reconfigure` —
